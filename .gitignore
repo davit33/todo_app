@@ -22,3 +22,27 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Local Gradle configuration
+.gradle/
+
+# Compiled class files
+**/build/
+
+# Ignore gradle wrapper properties file
+gradle-wrapper.properties
+
+# Ignore local.properties file
+local.properties
+
+# Generated Android Studio files
+.idea/
+
+# Recommended to ignore the whole .gradle directory
+.gradle/
+
+# Avoid pushing your Android Studio workspace files
+*.iml
+*.iws
+*.ipr
+.idea/
