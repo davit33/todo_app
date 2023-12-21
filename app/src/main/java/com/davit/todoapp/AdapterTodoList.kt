@@ -19,7 +19,7 @@ import com.davit.todoapp.databinding.ItemTodoListBinding
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textview.MaterialTextView
 
-class AdapterTodoList(private val context: Context, private val arrData: ArrayList<TodoListModel>) :
+class AdapterTodoList(private val context: Context, private var arrData: ArrayList<TodoListModel>) :
     Adapter<ViewHolderTodo>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolderTodo {
@@ -34,12 +34,12 @@ class AdapterTodoList(private val context: Context, private val arrData: ArrayLi
 
     override fun onBindViewHolder(holder: ViewHolderTodo, position: Int) {
         holder.text.text = arrData[position].text
-        holder.btnDelete.setOnClickListener { if (arrData.size > 0) deleteItem(position) }
-        holder.btnEdit.setOnClickListener { if (arrData.size > 0) editItem(position) }
+        holder.btnDelete.setOnClickListener { if (arrData.size > 0) deleteItem(holder.adapterPosition) }
+        holder.btnEdit.setOnClickListener { if (arrData.size > 0) editItem(holder.adapterPosition) }
         holder.btnComplete.setOnClickListener {
             if (arrData.size > 0) {
                 arrData[position].isComplete = arrData[position].isComplete == false
-                completeItem(holder.text,holder.btnComplete,position)
+                completeItem(holder.text,holder.btnComplete,holder.adapterPosition)
             }
         }
 
@@ -105,20 +105,25 @@ class AdapterTodoList(private val context: Context, private val arrData: ArrayLi
             if (newText.isEmpty()){
                 return@setOnClickListener
             }
-            arrData.forEach { item ->
-                if (item.text != newText) {
-                    arrData[position].text = newText
-                    arrData[position].isEdit = true
-                    notifyItemChanged(position)
-                }else{
-                    Toast.makeText(context, "Data cannot update duplicate", Toast.LENGTH_SHORT).show()
-                }
+            val findData = arrData.find { it -> it.text == newText }
+            if (findData?.text != newText){
+                arrData[position].text = newText
+                arrData[position].isEdit = true
+                notifyItemChanged(position)
+            }else{
+                Toast.makeText(context, "Data cannot update duplicate", Toast.LENGTH_SHORT).show()
             }
 
             dialog.dismiss()
         }
         buttonCancel.setOnClickListener { dialog.dismiss() }
         dialog.show()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateSuggestions(newSuggestions: ArrayList<TodoListModel>) {
+        arrData = newSuggestions
+        notifyDataSetChanged()
     }
 }
 
