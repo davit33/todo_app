@@ -15,7 +15,7 @@ import com.davit.todoapp.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
 
-    private var arrData: ArrayList<TodoListModel>? = ArrayList()
+    var arrData: ArrayList<TodoListModel>? = ArrayList()
     private var adapter: AdapterTodoList? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,14 +69,17 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun addData(text: String){
-        arrData?.add(TodoListModel(text))
+        arrData?.add(TodoListModel(text.trim()))
+        arrData?.sortBy { it -> it.text?.toString() }
         adapter?.notifyDataSetChanged()
         binding.edText.text?.clear()
     }
 
 
     private fun initAdapter(){
-        adapter = AdapterTodoList(this,arrData ?: ArrayList())
+        adapter = AdapterTodoList(this,arrData ?: ArrayList()){value ->
+            arrData?.remove(value)
+        }
         binding.recyclerview.layoutManager = LinearLayoutManager(this,RecyclerView.VERTICAL,false)
         binding.recyclerview.adapter = adapter
     }

@@ -3,7 +3,6 @@ package com.davit.todoapp
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
@@ -19,7 +18,7 @@ import com.davit.todoapp.databinding.ItemTodoListBinding
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textview.MaterialTextView
 
-class AdapterTodoList(private val context: Context, private var arrData: ArrayList<TodoListModel>) :
+class AdapterTodoList(private val context: Context, private var arrData: ArrayList<TodoListModel>,private val isRemove: (id: TodoListModel) -> Unit) :
     Adapter<ViewHolderTodo>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolderTodo {
@@ -34,12 +33,12 @@ class AdapterTodoList(private val context: Context, private var arrData: ArrayLi
 
     override fun onBindViewHolder(holder: ViewHolderTodo, position: Int) {
         holder.text.text = arrData[position].text
-        holder.btnDelete.setOnClickListener { if (arrData.size > 0) deleteItem(holder.adapterPosition) }
+        holder.btnDelete.setOnClickListener { if (arrData.size > 0)  showDialog(holder.adapterPosition,arrData[holder.adapterPosition])}
         holder.btnEdit.setOnClickListener { if (arrData.size > 0) editItem(holder.adapterPosition) }
         holder.btnComplete.setOnClickListener {
             if (arrData.size > 0) {
                 arrData[position].isComplete = arrData[position].isComplete == false
-                completeItem(holder.text,holder.btnComplete,holder.adapterPosition)
+                completeItem(holder.text,holder.btnComplete,holder.adapterPosition,holder.btnEdit)
             }
         }
 
@@ -48,9 +47,10 @@ class AdapterTodoList(private val context: Context, private var arrData: ArrayLi
 
     override fun getItemCount(): Int = arrData.size ?: 0
 
-    private fun deleteItem(position: Int) {
+    private fun deleteItem(position: Int,item: TodoListModel) {
         try {
             arrData.removeAt(position)
+            isRemove(item)
             notifyItemRemoved(position)
         }catch (e: Exception){
             e.printStackTrace()
@@ -69,11 +69,13 @@ class AdapterTodoList(private val context: Context, private var arrData: ArrayLi
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
-    private fun completeItem(textView: MaterialTextView, icon: ShapeableImageView, position: Int) {
+    private fun completeItem(textView: MaterialTextView, icon: ShapeableImageView, position: Int,btnEdit: ShapeableImageView) {
         if (arrData[position].isComplete == true){
             textView.paintFlags = textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            btnEdit.visibility = View.GONE
         }else{
             textView.paintFlags = textView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            btnEdit.visibility = View.VISIBLE
         }
 
         icon.setImageDrawable(
@@ -82,6 +84,26 @@ class AdapterTodoList(private val context: Context, private var arrData: ArrayLi
                 null
             )
         )
+    }
+
+    private fun showDialog(position: Int,item: TodoListModel){
+        val dialog = Dialog(context)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(true)
+        dialog.setContentView(R.layout.dialog_message)
+        val lp = WindowManager.LayoutParams()
+        lp.copyFrom(dialog.window!!.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
+        dialog.window!!.attributes = lp
+        val buttonConfirm = dialog.findViewById<Button>(R.id.btnConfirm)
+        val buttonCancel = dialog.findViewById<Button>(R.id.btnCancel)
+        buttonConfirm.setOnClickListener {
+            deleteItem(position,item)
+            dialog.dismiss()
+        }
+        buttonCancel.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     private fun showEditDialog(todoItem: TodoListModel, position: Int) {
